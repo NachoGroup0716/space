@@ -115,7 +115,6 @@ public class CompressUtils {
 						tos.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 						tos.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
 						addToEntry(tos, prefix, list, base, preserveAbsolutePath, ignoreParentsDirectory, ignoreTreeStructure);
-						
 					}
 					break;
 				case LINUX_Z :
@@ -185,6 +184,7 @@ public class CompressUtils {
 					BufferedInputStream bis = new BufferedInputStream(fis, BUFFER_SIZE);) {
 				IOUtils.copy(bis, aos);
 			}
+			aos.closeArchiveEntry();
 		}
 	}
 	

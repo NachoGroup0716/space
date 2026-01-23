@@ -31,7 +31,7 @@ public class CommandUtils {
 		Process proc = pb.start();
 		StringBuilder errSb = new StringBuilder();
 		StringBuilder outSb = new StringBuilder();
-		ExecutorService es = Executors.newSingleThreadExecutor();
+		ExecutorService es = Executors.newFixedThreadPool(2);
 		Future<?> errF = es.submit(streamGobbler(proc.getErrorStream(), errSb));
 		Future<?> outF = null;
 		if (output == null) {
@@ -56,7 +56,7 @@ public class CommandUtils {
 		if (outF == null) {
 			return null;
 		} else {
-			return outF.toString();
+			return outSb.toString();
 		}
 	}
 	
