@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 public class CommandUtils {
 	private final static Charset CHAR_SET = Charset.defaultCharset();
 	
-	public static void run(List<String> command, Path output, Path work, Duration timeout) throws InterruptedException, TimeoutException, IOException {
+	public static String run(List<String> command, Path output, Path work, Duration timeout) throws InterruptedException, TimeoutException, IOException {
 		ProcessBuilder pb = new ProcessBuilder(command);
 		if (output != null) {
 			pb.redirectOutput(output.toFile());
@@ -30,11 +30,19 @@ public class CommandUtils {
 		
 		Process proc = pb.start();
 		StringBuilder errSb = new StringBuilder();
+		StringBuilder outSb = new StringBuilder();
 		ExecutorService es = Executors.newSingleThreadExecutor();
 		Future<?> errF = es.submit(streamGobbler(proc.getErrorStream(), errSb));
+		Future<?> outF = null;
+		if (output == null) {
+			outF = es.submit(streamGobbler(proc.getInputStream(), outSb));
+		}
 		boolean finished = proc.waitFor(timeout == null ? 0 : timeout.toMillis(), TimeUnit.MILLISECONDS);
 		try {
 			errF.get(5, TimeUnit.SECONDS);
+			if (outF != null) {
+				outF.get(5, TimeUnit.SECONDS);
+			}
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {	}
 		es.shutdown();
 		if (!finished) {
@@ -43,6 +51,12 @@ public class CommandUtils {
 		}
 		if (proc.exitValue() != 0) {
 			throw new IOException("Command execute failed: " + String.join(" ", command) + System.lineSeparator() + "STDERR:" + System.lineSeparator() + errSb.toString().trim());
+		}
+		
+		if (outF == null) {
+			return null;
+		} else {
+			return outF.toString();
 		}
 	}
 	

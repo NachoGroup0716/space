@@ -52,6 +52,26 @@ public class CompressUtils {
 			format = extractFormat(target);
 		}
 		
+		if (source == null) {
+			if (list == null || list.size() == 0) {
+				throw new IOException("Source path or Source path list required");
+			} else {
+				if (base == null) {
+					throw new IOException("Compress base on List<Path> required real base directory path");
+				}
+			}
+		} else {
+			try (Stream<Path> stream = Files.walk(source)) {
+				list = stream.filter(path -> Files.isRegularFile(path)).collect(Collectors.toList());
+			}
+			
+			if (base == null) {
+				if (Files.isDirectory(source)) {
+					base = source;
+				}
+			}
+		}
+		
 		validateCompressArguments(source, list, base, target, format, options);
 		
 		if (prefix == null) {
@@ -169,26 +189,6 @@ public class CompressUtils {
 	}
 	
 	private static void validateCompressArguments(Path source, List<Path> list, Path base, Path target, CompressFormats format, CompressOptions... options) throws IOException {
-		if (source == null) {
-			if (list == null || list.size() == 0) {
-				throw new IOException("Source path or Source path list required");
-			} else {
-				if (base == null) {
-					throw new IOException("Compress base on List<Path> required real base directory path");
-				}
-			}
-		} else {
-			try (Stream<Path> stream = Files.walk(source)) {
-				list = stream.filter(path -> Files.isRegularFile(path)).collect(Collectors.toList());
-			}
-			
-			if (base == null) {
-				if (Files.isDirectory(source)) {
-					base = source;
-				}
-			}
-		}
-		
 		if (format == CompressFormats.GZIP || format == CompressFormats.LINUX_Z) {
 			if (source == null) {
 				if (list.size() == 1) {
