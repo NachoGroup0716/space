@@ -26,3 +26,4 @@ public enum CheckOptions {
 		return validator.test(item);
 	}
 }
+
