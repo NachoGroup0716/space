@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CompressUtils {
 	private static final int BUFFER_SIZE = 3 * 1024;
-	private static final List<CompressFormats> ARCHIVE_FORMATS = Arrays.asList(new CompressFormats[] {CompressFormats.TAR, CompressFormats.ZIP, CompressFormats.JAR});
+	public static final List<CompressFormats> ARCHIVE_FORMATS = Arrays.asList(new CompressFormats[] {CompressFormats.TAR, CompressFormats.ZIP, CompressFormats.JAR});
 	
 	public static void compress(String prefix, Path source, List<Path> list, Path base, Path target, Duration timeout, CompressFormats format, CompressOptions... options) throws IOException, ArchiveException {
 		boolean ignoreTreeStructure = false;
