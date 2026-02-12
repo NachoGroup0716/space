@@ -37,12 +37,14 @@ public class CompressUtils {
 		boolean ignoreTreeStructure = false;
 		boolean ignoreParentsDirectory = false;
 		boolean preserveAbsolutePath = false;
+		boolean deleteSource = false;
 		if (options != null) {
 			for (CompressOptions option : options) {
 				switch (option) {
 				case IGNORE_TREE_STRUCTURES : ignoreTreeStructure = true; break;
 				case IGNORE_PARENTS_DIRECTORY : ignoreParentsDirectory = true; break;
 				case PRESERVE_ABSOLUTE_PATH : preserveAbsolutePath = true; break;
+				case DELETE_SOURCE : deleteSource = true; break;
 				default : throw new IOException("Not supported options on compress process '" + option + "'");
 				}
 			}
@@ -130,6 +132,26 @@ public class CompressUtils {
 					throw new IOException("Unsupported compress format '" + format.get() + "'");
 			}
 		}
+		
+		if (deleteSource) {
+			try {
+				if (source != null) {
+					boolean isDirectory = Files.isDirectory(source);
+					FileUtils.delete(source);
+					log.debug("Source {} deleted successfully: {}", (isDirectory ? "directory" : "file"), source.toAbsolutePath());
+				} else if (list != null) {
+					for (Path path : list) {
+						FileUtils.delete(path);
+					}
+					log.debug("Source files in list, deleted successfully. count: {}", list.size());
+				}
+			} catch(IOException e) {
+				log.warn("Failed to delete source files\r\n", e);
+			}
+		}
+		
+		long end = System.currentTimeMillis();
+		log.info("Success to compress in {}ms :: [RESULT:{}]", (end - start), target.toAbsolutePath());
 	}
 	
 	private static CompressFormats extractFormat(Path target) throws IOException {
@@ -176,7 +198,7 @@ public class CompressUtils {
 				 }
 			}
 			
-			name = prefix + name;
+			name = (prefix + name).replace("\\", File.separator).replace("/", File.separator);
 			log.debug("Processing {}/{} :: [FILE:{}] --> [ENTRY_NAME:{}]", (i + 1), list.size(), file.toAbsolutePath(), name);
 			ArchiveEntry entry = aos.createArchiveEntry(file.toFile(), name);
 			aos.putArchiveEntry(entry);

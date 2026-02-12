@@ -99,7 +99,7 @@ public class DecompressUtils {
 			}
 		}
 		
-		log.info("Prepare for decompress :: [FORMAT:{}] [FILE:{}] [IGNORE_TREE_STRUCTURE:{]] [DELETE_SOURCE:{}]", format, source.getFileName(), (ignoreTreeStructure ? "TRUE" : "FALSE"), (deleteSource ? "TRUE" : "FALSE"));
+		log.info("Prepare for decompress :: [FORMAT:{}] [FILE:{}] [IGNORE_TREE_STRUCTURE:{}] [DELETE_SOURCE:{}]", format, source.getFileName(), (ignoreTreeStructure ? "TRUE" : "FALSE"), (deleteSource ? "TRUE" : "FALSE"));
 		long start = System.currentTimeMillis();
 		List<Path> resultList = new ArrayList<Path>();
 		
@@ -130,7 +130,7 @@ public class DecompressUtils {
 		}
 		
 		long end = System.currentTimeMillis();
-		log.info("Success to decompress in {}ms :: [SOURCE:{]] [FILE_COUNT:{}]", (end - start), source.toAbsolutePath(), resultList.size());
+		log.info("Success to decompress in {}ms :: [SOURCE:{}] [FILE_COUNT:{}]", (end - start), source.toAbsolutePath(), resultList.size());
 		return resultList;
 	}
 	
@@ -153,6 +153,7 @@ public class DecompressUtils {
 						return CompressFormats.TAR_GZIP;
 					}
 				} catch(IOException ignore) {	}
+				return CompressFormats.GZIP;
 			}
 			
 			if (ZCompressorInputStream.matches(signature, length)) {
