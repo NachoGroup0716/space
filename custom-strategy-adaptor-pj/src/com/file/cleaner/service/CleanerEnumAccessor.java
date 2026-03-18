@@ -11,7 +11,7 @@ import com.file.cleaner.data.CleanerFileData;
 public class CleanerEnumAccessor implements PropertyAccessor {
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
-		return new Class[] { FILE_ATTRIBUTES.class };
+		return new Class[] { CleanerFileData.class };
 	}
 
 	@Override

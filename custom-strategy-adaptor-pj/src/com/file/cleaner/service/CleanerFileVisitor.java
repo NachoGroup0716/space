@@ -1,5 +1,6 @@
 package com.file.cleaner.service;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -13,6 +14,7 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -30,12 +32,14 @@ public class CleanerFileVisitor extends SimpleFileVisitor<Path> {
 	private LocalDateTime now;
 	private Path baseDirectory;
 	private String pattern;
+	private BufferedWriter historyWriter;
 
-	public CleanerFileVisitor(Expression expression, LocalDateTime now, Path baseDirectory, String pattern) {
+	public CleanerFileVisitor(Expression expression, LocalDateTime now, Path baseDirectory, String pattern, BufferedWriter historyWriter) {
 		this.expression = expression;
 		this.now = now;
 		this.baseDirectory = baseDirectory;
 		this.pattern = pattern;
+		this.historyWriter = historyWriter;
 	}
 
 	@Override
@@ -79,6 +83,13 @@ public class CleanerFileVisitor extends SimpleFileVisitor<Path> {
 	public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
 		log.error("Failed to visit file :: {}\r\n", file.toAbsolutePath(), exc);
 		return FileVisitResult.CONTINUE;
+	}
+	
+	private void write(boolean isDirectory, Path path) throws IOException {
+		if (Objects.nonNull(this.historyWriter)) {
+			this.historyWriter.append(isDirectory ? "D" : "F").append(":").append(path.toAbsolutePath().toString());
+			this.historyWriter.newLine();
+		}
 	}
 	
 	private void delete(Path path) throws IOException {
