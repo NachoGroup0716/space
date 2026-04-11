@@ -1,26 +1,26 @@
 package com.file.cleaner.data;
 
-import java.util.Objects;
+import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+
+import com.file.cleaner.utils.StringUtils;
 
 public class CleanerInterfaceInfo implements InitializingBean {
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 	private Expression expression;
 	private String searchPaths;
 	private String searchRules;
+	private String historyPath;
+	private List<String> excludePath;
 	
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if (Objects.isNull(searchPaths) || searchPaths.isEmpty()) {
-			throw new IllegalArgumentException("Property 'searchPaths' is required");
-		}
-		if (Objects.isNull(searchRules) || searchRules.isEmpty()) {
-			throw new IllegalArgumentException("Property 'searchRules' is required");
-		}
-		this.expression = PARSER.parseExpression(this.searchRules);
+		if (StringUtils.isNullOrEmpty(searchPaths)) throw new IllegalArgumentException("Property 'searchPaths' is required");
+		if (StringUtils.isNullOrEmpty(searchRules)) throw new IllegalArgumentException("Property 'searchRules' is required");
+		this.expression = PARSER.parseExpression(searchRules);
 	}
 
 	public String getSearchPaths() {
@@ -39,8 +39,23 @@ public class CleanerInterfaceInfo implements InitializingBean {
 		this.searchRules = searchRules;
 	}
 
+	public String getHistoryPath() {
+		return historyPath;
+	}
+
+	public void setHistoryPath(String historyPath) {
+		this.historyPath = historyPath;
+	}
+
+	public List<String> getExcludePath() {
+		return excludePath;
+	}
+
+	public void setExcludePath(List<String> excludePath) {
+		this.excludePath = excludePath;
+	}
+	
 	public Expression getExpression() {
 		return expression;
 	}
-	
 }

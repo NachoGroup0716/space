@@ -1,7 +1,6 @@
 package com.file.cleaner.data;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -15,13 +14,14 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.file.cleaner.constants.FILE_ATTRIBUTES;
+import com.file.cleaner.utils.FileUtils;
 
 public class CleanerFileData {
 	public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("@\\{([A-Za-z]+)\\}");
 	private final EnumMap<FILE_ATTRIBUTES, Object> attributes = new EnumMap<FILE_ATTRIBUTES, Object>(FILE_ATTRIBUTES.class);
 	private final Set<FILE_ATTRIBUTES> accessedAttributes = EnumSet.noneOf(FILE_ATTRIBUTES.class);
 	
-	public CleanerFileData(Path path, BasicFileAttributes attr, LocalDateTime now, LocalDateTime dateTimeBasedOnName) throws Exception {
+	public CleanerFileData(Path path, BasicFileAttributes attr, LocalDateTime now, LocalDateTime dateTimeBaseOnName) throws IOException {
 		String name = path.getFileName().toString();
 		LocalDateTime created = LocalDateTime.ofInstant(attr.creationTime().toInstant(), ZoneId.systemDefault());
 		LocalDateTime modified = LocalDateTime.ofInstant(attr.lastModifiedTime().toInstant(), ZoneId.systemDefault());
@@ -41,70 +41,51 @@ public class CleanerFileData {
 		if (Files.isDirectory(path)) {
 			this.attributes.put(FILE_ATTRIBUTES.IS_DIRECTORY, true);
 			this.attributes.put(FILE_ATTRIBUTES.IS_FILE, false);
-			this.attributes.put(FILE_ATTRIBUTES.IS_DIRECTORY_EMPTY, this.isDirectoryEmpty(path));
+			this.attributes.put(FILE_ATTRIBUTES.IS_DIRECTORY_EMPTY, FileUtils.isDirectoryEmpty(path));
 		} else {
 			this.attributes.put(FILE_ATTRIBUTES.IS_DIRECTORY, false);
 			this.attributes.put(FILE_ATTRIBUTES.IS_FILE, true);
 			this.attributes.put(FILE_ATTRIBUTES.SIZE, attr.size());
-			this.attributes.put(FILE_ATTRIBUTES.EXTENSION, this.getFileExtension(name));
+			this.attributes.put(FILE_ATTRIBUTES.EXTENSION, FileUtils.getFileExtension(name));
 		}
-		if (Objects.nonNull(dateTimeBasedOnName)) {
-			this.attributes.put(FILE_ATTRIBUTES.NAME_MINUTES_AGE, ChronoUnit.MINUTES.between(dateTimeBasedOnName, now));
-			this.attributes.put(FILE_ATTRIBUTES.NAME_HOURS_AGE, ChronoUnit.HOURS.between(dateTimeBasedOnName, now));
-			this.attributes.put(FILE_ATTRIBUTES.NAME_DAYS_AGE, ChronoUnit.DAYS.between(dateTimeBasedOnName, now));
-			this.attributes.put(FILE_ATTRIBUTES.NAME_WEEKS_AGE, ChronoUnit.WEEKS.between(dateTimeBasedOnName, now));
-			this.attributes.put(FILE_ATTRIBUTES.NAME_MONTHS_AGE, ChronoUnit.MONTHS.between(dateTimeBasedOnName, now));
-			this.attributes.put(FILE_ATTRIBUTES.NAME_YEARS_AGE, ChronoUnit.YEARS.between(dateTimeBasedOnName, now));
-		}
-	}
-	
-	private boolean isDirectoryEmpty(Path path) throws IOException {
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-			return !stream.iterator().hasNext();
+		if (Objects.nonNull(dateTimeBaseOnName)) {
+			this.attributes.put(FILE_ATTRIBUTES.NAME_EXPRESSION_MINUTES_AGE, ChronoUnit.MINUTES.between(dateTimeBaseOnName, now));
+			this.attributes.put(FILE_ATTRIBUTES.NAME_EXPRESSION_HOURS_AGE, ChronoUnit.HOURS.between(dateTimeBaseOnName, now));
+			this.attributes.put(FILE_ATTRIBUTES.NAME_EXPRESSION_DAYS_AGE, ChronoUnit.DAYS.between(dateTimeBaseOnName, now));
+			this.attributes.put(FILE_ATTRIBUTES.NAME_EXPRESSION_WEEKS_AGE, ChronoUnit.WEEKS.between(dateTimeBaseOnName, now));
+			this.attributes.put(FILE_ATTRIBUTES.NAME_EXPRESSION_MONTHS_AGE, ChronoUnit.MONTHS.between(dateTimeBaseOnName, now));
+			this.attributes.put(FILE_ATTRIBUTES.NAME_EXPRESSION_YEARS_AGE, ChronoUnit.YEARS.between(dateTimeBaseOnName, now));
 		}
 	}
 	
-	private String getFileExtension(String name) {
-		int dot = name.lastIndexOf(".");
-		if (dot > 0 && dot < name.length()) {
-			return name.substring(dot + 1);
-		} else {
-			return "";
-		}
+	public Object accessAndGetAttributes(FILE_ATTRIBUTES attr) {
+		this.accessedAttributes.add(attr);
+		return this.attributes.get(attr);
+	}
+	
+	public Object getAttributes(FILE_ATTRIBUTES attr) {
+		return this.attributes.get(attr);
 	}
 	
 	public boolean containsKey(FILE_ATTRIBUTES attr) {
 		return this.attributes.containsKey(attr);
 	}
 	
-	public Object get(FILE_ATTRIBUTES attr) {
-		return this.attributes.get(attr);
+	public EnumMap<FILE_ATTRIBUTES, Object> getAttributes() {
+		return this.attributes;
 	}
 	
-	public Object accessAndGet(FILE_ATTRIBUTES attr) {
-		this.accessedAttributes.add(attr);
-		return this.attributes.get(attr);
-	}
-
-	public EnumMap<FILE_ATTRIBUTES, Object> getAttributes() {
-		return attributes;
-	}
-
 	public Set<FILE_ATTRIBUTES> getAccessedAttributes() {
 		return accessedAttributes;
 	}
 	
 	public String toString(boolean result) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("MATCH: ").append(String.valueOf(result).toUpperCase()).append(" ==> ");
-		for (FILE_ATTRIBUTES attr : accessedAttributes) {
+		for (FILE_ATTRIBUTES attr : this.accessedAttributes) {
 			sb.append(attr.name()).append(":");
-			if (this.attributes.containsKey(attr)) {
-				sb.append(this.attributes.get(attr));
-			} else {
-				sb.append("NULL");
-			}
-			sb.append(", ");
+			Object value = this.attributes.get(attr);
+			sb.append(Objects.isNull(value) ? "NULL" : String.valueOf(value)).append(", ");
 		}
 		
 		String line = sb.toString().trim();

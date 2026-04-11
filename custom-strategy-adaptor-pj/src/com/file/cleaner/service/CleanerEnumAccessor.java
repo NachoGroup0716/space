@@ -29,7 +29,7 @@ public class CleanerEnumAccessor implements PropertyAccessor {
 	public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
 		CleanerFileData data = (CleanerFileData) target;
 		FILE_ATTRIBUTES attr = FILE_ATTRIBUTES.valueOf(name);
-		return new TypedValue(data.accessAndGet(attr));
+		return new TypedValue(data.accessAndGetAttributes(attr));
 	}
 
 	@Override
@@ -39,6 +39,6 @@ public class CleanerEnumAccessor implements PropertyAccessor {
 
 	@Override
 	public void write(EvaluationContext context, Object target, String name, Object newValue) throws AccessException {
-		throw new UnsupportedOperationException("읽기 전용입니다.");
+		throw new UnsupportedOperationException("Read only context");
 	}
 }
