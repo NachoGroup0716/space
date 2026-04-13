@@ -16,10 +16,9 @@ public class CleanerEnumAccessor implements PropertyAccessor {
 
 	@Override
 	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
-		CleanerFileData data = (CleanerFileData) target;
 		try {
-			FILE_ATTRIBUTES attr = FILE_ATTRIBUTES.valueOf(name);
-			return data.containsKey(attr);
+			FILE_ATTRIBUTES.valueOf(name);
+			return true;
 		} catch (Exception e) {
 			return false;
 		}
